@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mushroom Tracker</title>
+  <style>
+    :root{--bg:#fff;--text:#111;--surface:#fff;--muted:#f6f6f6;--border:#ddd;--pill:#eee;--accent:#4c8bf5;--overdue:#fff3f0;--input:#fafafa;--link:#1a73e8;--danger:#c62828;--dangerText:#fff}
+    [data-theme="dark"]{--bg:#0f1115;--text:#e8eaed;--surface:#1a1d24;--muted:#222633;--border:#2b3040;--pill:#30364a;--accent:#8ab4f8;--overdue:#1f2738;--input:#141822;--link:#8ab4f8;--danger:#d64545;--dangerText:#fff}
+    body{font-family:system-ui;margin:16px;max-width:1100px;background:var(--bg);color:var(--text)}
+    header{display:flex;justify-content:space-between}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{border:1px solid var(--border);padding:6px;font-size:13px}
+    th{background:var(--muted);position:sticky;top:0}
+    .btn{background:var(--accent);color:#fff;border:none;padding:4px 8px;cursor:pointer}
+    .btn-danger{background:var(--danger);color:var(--dangerText)}
+  </style>
+</head>
+<body onload="initTheme(); reload()">
+  <header>
+    <h2>Mushroom Tracker</h2>
+    <div>
+      <a class="btn" href="YOUR_FORM_LINK" target="_blank">+ New entry</a>
+      <button id="themeBtn" class="btn">🌙</button>
+      <span id="count"></span>
+    </div>
+  </header>
+  <table id="grid"><thead><tr><th>ID</th><th>Strain</th><th>Next</th><th>Status</th><th>Notes</th><th>Actions</th></tr></thead><tbody></tbody></table>
+<script>
+let ROWS=[]; const THEME_KEY='mt_theme';
+function setTheme(t){document.documentElement.dataset.theme=t;localStorage.setItem(THEME_KEY,t);document.getElementById('themeBtn').textContent=(t==='dark'?'☀️':'🌙');}
+function initTheme(){setTheme(localStorage.getItem(THEME_KEY)||'light');document.getElementById('themeBtn').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');}
+function reload(){google.script.run.withSuccessHandler(j=>{ROWS=JSON.parse(j);render();}).getRows();}
+function render(){const tb=document.querySelector('#grid tbody');tb.innerHTML='';ROWS.forEach(r=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${r.id||''}</td><td>${r.strain||''}</td><td><input type="date" value="${dateVal(r.nextCheck)}" onchange="uiNext('${r.id}',this.value)"></td><td><select onchange="uiStat('${r.id}',this.value)">${opt(r.status)}</select></td><td><textarea onblur="uiNote('${r.id}',this.value)">${r.notes||''}</textarea></td><td><button class="btn" onclick="uiSnooze('${r.id}',2)">+2d</button><button class="btn-danger" onclick="uiDel('${r.id}')">Del</button></td>`;tb.appendChild(tr);});document.getElementById('count').textContent=ROWS.length+' items';}
+function dateVal(d){if(!d) return ''; const dt=new Date(d); return isNaN(dt)?'':dt.toISOString().slice(0,10);}
+function opt(s){return ['Planned','Incubating','Fruiting','Ready','Retired'].map(x=>`<option ${s===x?'selected':''}>${x}</option>`).join('');}
+function uiStat(id,val){google.script.run.withSuccessHandler(reload).updateStatus(id,val);}
+function uiNext(id,v){google.script.run.withSuccessHandler(reload).setNextCheck(id,v);}
+function uiSnooze(id,d){google.script.run.withSuccessHandler(reload).snoozeDays(id,d);}
+function uiNote(id,n){google.script.run.saveNotes(id,n);}
+function uiDel(id){if(confirm('Delete '+id+'?'))google.script.run.withSuccessHandler(reload).deleteItem(id);}
+</script>
+</body>
+</html>
