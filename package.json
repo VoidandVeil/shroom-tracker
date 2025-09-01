@@ -1,0 +1,10 @@
+{
+  "name": "mushroom-tracker",
+  "private": true,
+  "devDependencies": { "@google/clasp": "^2.4.2" },
+  "scripts": {
+    "login": "npx clasp login",
+    "push": "npx clasp push -f",
+    "open": "npx clasp open"
+  }
+}
