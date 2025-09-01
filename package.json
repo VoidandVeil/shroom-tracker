@@ -1,5 +1,5 @@
 {
-  "name": "mushroom-tracker",
+  "name": "shroom-tracker",
   "private": true,
   "devDependencies": { "@google/clasp": "^2.4.2" },
   "scripts": {
